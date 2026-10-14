@@ -1,0 +1,26 @@
+import { chromium } from "playwright";
+const b = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" }).catch(()=>chromium.launch());
+const p = await b.newPage();
+await p.goto("file://" + process.cwd() + "/test/index.html");
+await p.click(".cm-content");
+await p.keyboard.press("Control+End");
+await p.keyboard.type("Le résultat vaut 5 * 8 / 4 =");
+console.log("ghost:", await p.locator(".calcul-inline-ghost").allTextContents());
+await p.keyboard.press("Tab");
+await p.keyboard.press("Enter");
+await p.keyboard.type("f = 1/(2*pi*R*C) = ");
+console.log("ghost:", await p.locator(".calcul-inline-ghost").allTextContents());
+await p.keyboard.press("Tab");
+await p.keyboard.press("Enter");
+await p.keyboard.type("$\\frac{10}{4} =$");
+await p.keyboard.press("ArrowLeft");
+await p.keyboard.press("Tab");
+await p.keyboard.press("End");
+await p.keyboard.press("Enter");
+await p.keyboard.type("g(21) =");
+await p.keyboard.press("Tab");
+await p.keyboard.press("Enter");
+await p.keyboard.type("pas de calcul ici");
+await p.keyboard.press("Tab");   // doit indenter normalement, pas insérer
+console.log(JSON.stringify(await p.evaluate(() => window.view.state.doc.toString()), null, 1));
+await b.close();

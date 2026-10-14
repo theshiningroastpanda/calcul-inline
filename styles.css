@@ -1,0 +1,58 @@
+.calcul-inline-ghost {
+  color: var(--text-faint);
+  font-style: italic;
+  cursor: pointer;
+  white-space: pre;
+}
+.calcul-inline-ghost:hover {
+  color: var(--text-accent);
+}
+.calcul-inline-result {
+  color: var(--text-muted);
+  white-space: pre;
+}
+
+/* ---- Graphes ---- */
+.calcul-graph {
+  --cg-s1: #2a78d6; --cg-s2: #eb6834; --cg-s3: #1baf7a; --cg-s4: #eda100;
+  --cg-s5: #e87ba4; --cg-s6: #008300; --cg-s7: #6250d6; --cg-s8: #e34948;
+  margin: 6px 0 10px;
+  font-size: var(--font-ui-smaller);
+  color: var(--text-muted);
+  user-select: none;
+}
+.theme-dark .calcul-graph {
+  --cg-s1: #3987e5; --cg-s2: #d95926; --cg-s3: #199e70; --cg-s4: #c98500;
+  --cg-s5: #d55181; --cg-s6: #008300; --cg-s7: #9085e9; --cg-s8: #e66767;
+}
+.calcul-graph-plot { position: relative; }
+.calcul-graph svg { display: block; width: 100%; height: auto; overflow: visible; }
+.calcul-graph .cg-grid line { stroke: var(--background-modifier-border); stroke-width: 1; }
+.calcul-graph .cg-axes line { stroke: var(--text-faint); stroke-width: 1; }
+.calcul-graph .cg-ticks text, .calcul-graph .cg-unit { fill: var(--text-muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+.calcul-graph .cg-line { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.calcul-graph .cg-cross { stroke: var(--text-faint); stroke-width: 1; stroke-dasharray: 3 3; }
+.calcul-graph .cg-dot { stroke: var(--background-primary); stroke-width: 2; }
+.calcul-graph .s1 { stroke: var(--cg-s1); fill: var(--cg-s1); } .calcul-graph .s2 { stroke: var(--cg-s2); fill: var(--cg-s2); }
+.calcul-graph .s3 { stroke: var(--cg-s3); fill: var(--cg-s3); } .calcul-graph .s4 { stroke: var(--cg-s4); fill: var(--cg-s4); }
+.calcul-graph .s5 { stroke: var(--cg-s5); fill: var(--cg-s5); } .calcul-graph .s6 { stroke: var(--cg-s6); fill: var(--cg-s6); }
+.calcul-graph .s7 { stroke: var(--cg-s7); fill: var(--cg-s7); } .calcul-graph .s8 { stroke: var(--cg-s8); fill: var(--cg-s8); }
+.calcul-graph .cg-line.s1, .calcul-graph .cg-line.s2, .calcul-graph .cg-line.s3, .calcul-graph .cg-line.s4,
+.calcul-graph .cg-line.s5, .calcul-graph .cg-line.s6, .calcul-graph .cg-line.s7, .calcul-graph .cg-line.s8 { fill: none; }
+.calcul-graph-legend { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-bottom: 4px; color: var(--text-normal); }
+.calcul-graph-legend-item { display: inline-flex; align-items: center; gap: 6px; }
+.calcul-graph-swatch { display: inline-block; width: 14px; height: 3px; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
+.calcul-graph-swatch.s1 { background: var(--cg-s1); } .calcul-graph-swatch.s2 { background: var(--cg-s2); }
+.calcul-graph-swatch.s3 { background: var(--cg-s3); } .calcul-graph-swatch.s4 { background: var(--cg-s4); }
+.calcul-graph-swatch.s5 { background: var(--cg-s5); } .calcul-graph-swatch.s6 { background: var(--cg-s6); }
+.calcul-graph-swatch.s7 { background: var(--cg-s7); } .calcul-graph-swatch.s8 { background: var(--cg-s8); }
+.calcul-graph-tip {
+  display: none; position: absolute; top: 8px; pointer-events: none; z-index: 2;
+  padding: 6px 8px; border-radius: var(--radius-s);
+  background: var(--background-primary); border: 1px solid var(--background-modifier-border);
+  box-shadow: var(--shadow-s); color: var(--text-normal); white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.calcul-graph-tip-x { color: var(--text-muted); margin-bottom: 2px; }
+.calcul-graph-error { color: var(--text-error); margin-bottom: 4px; }
+.calcul-graph-plot + .calcul-graph-legend { margin-top: 12px; }

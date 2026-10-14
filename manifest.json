@@ -1,0 +1,10 @@
+{
+  "id": "calcul-inline",
+  "name": "Calcul inline",
+  "version": "0.3.0",
+  "minAppVersion": "1.4.0",
+  "description": "Écris 5 * 8 / 4 = et le résultat apparaît ; Tab pour l'insérer. Unités, variables, fonctions perso, graphes et LaTeX ($…=$) supportés.",
+  "author": "theshiningroastpanda",
+  "authorUrl": "https://github.com/theshiningroastpanda",
+  "isDesktopOnly": false
+}

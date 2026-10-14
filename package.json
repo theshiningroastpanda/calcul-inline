@@ -1,0 +1,25 @@
+{
+  "name": "calcul-inline",
+  "version": "0.3.0",
+  "description": "Plugin Obsidian : calculs inline, unités, fonctions et graphes",
+  "main": "main.js",
+  "scripts": {
+    "build": "tsc -p . && esbuild src/main.ts --bundle --format=cjs --target=es2020 --minify --external:obsidian --external:electron \"--external:@codemirror/*\" \"--external:@lezer/*\" --outfile=main.js",
+    "test": "esbuild test/core.test.ts --bundle --platform=node --outfile=test/core.test.js --log-level=error && node test/core.test.js"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@codemirror/commands": "^6.11.1",
+    "@codemirror/language": "^6.13.1",
+    "@codemirror/state": "^6.7.6",
+    "@codemirror/view": "^6.43.13",
+    "@types/node": "^26.6.5",
+    "esbuild": "^0.28.2",
+    "obsidian": "^1.14.4",
+    "playwright": "^1.64.1",
+    "typescript": "^7.0.2"
+  },
+  "dependencies": {
+    "mathjs": "^15.2.0"
+  }
+}

@@ -1,0 +1,12 @@
+import { chromium } from "playwright";
+const b = await chromium.launch({ executablePath: "/opt/pw-browsers/chromium" }).catch(()=>chromium.launch());
+const p = await b.newPage({ viewport: { width: 1400, height: 2400 } });
+p.on("pageerror", e => console.log("ERR", e.message));
+await p.goto("file://" + process.cwd() + "/test/graph.html");
+const plots = await p.locator(".theme-light .calcul-graph-plot svg").all();
+const bb = await plots[3].boundingBox();
+await p.mouse.move(bb.x + bb.width * 0.3, bb.y + bb.height / 2);
+await p.mouse.move(bb.x + bb.width * 0.31, bb.y + bb.height / 2);
+console.log("tip:", JSON.stringify(await p.locator(".theme-light .calcul-graph-tip").nth(3).innerText()));
+await p.screenshot({ path: "test/graphs.png", fullPage: true });
+await b.close();
