@@ -47,12 +47,14 @@
 .calcul-graph-swatch.s5 { background: var(--cg-s5); } .calcul-graph-swatch.s6 { background: var(--cg-s6); }
 .calcul-graph-swatch.s7 { background: var(--cg-s7); } .calcul-graph-swatch.s8 { background: var(--cg-s8); }
 .calcul-graph-tip {
-  display: none; position: absolute; top: 8px; pointer-events: none; z-index: 2;
+  display: none; position: absolute; top: 8px; left: var(--cg-tip-left, 0); pointer-events: none; z-index: 2;
   padding: 6px 8px; border-radius: var(--radius-s);
   background: var(--background-primary); border: 1px solid var(--background-modifier-border);
   box-shadow: var(--shadow-s); color: var(--text-normal); white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
+.calcul-graph-tip.is-visible { display: block; }
+.calcul-graph-tip.is-flipped { transform: translateX(calc(-100% - 24px)); }
 .calcul-graph-tip-x { color: var(--text-muted); margin-bottom: 2px; }
 .calcul-graph-error { color: var(--text-error); margin-bottom: 4px; }
 .calcul-graph-plot + .calcul-graph-legend { margin-top: 12px; }

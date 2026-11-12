@@ -14,7 +14,7 @@ function scopeAtLine(text: string, line: number, settings: CalcSettings): Scope 
 		cache = { key, scopes };
 	}
 	// Ligne ignorée (code, frontmatter) : on remonte jusqu'à la précédente connue
-	return lookup(line) ?? new Map();
+	return lookup(line) ?? new Map<string, unknown>();
 }
 
 function lookup(line: number): Scope | null {
@@ -48,9 +48,9 @@ export function makePostProcessor(getSettings: () => CalcSettings) {
 		const settings = getSettings();
 		const info = ctx.getSectionInfo(el);
 		// Scope = variables définies jusqu'à la fin de cette section
-		const scope = info ? scopeAtLine(info.text, info.lineEnd + 1, settings) : new Map();
+		const scope: Scope = info ? scopeAtLine(info.text, info.lineEnd + 1, settings) : new Map<string, unknown>();
 
-		const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+		const walker = el.ownerDocument.createTreeWalker(el, NodeFilter.SHOW_TEXT);
 		const targets: Text[] = [];
 		for (let n = walker.nextNode(); n; n = walker.nextNode()) {
 			const t = n as Text;
@@ -65,10 +65,7 @@ export function makePostProcessor(getSettings: () => CalcSettings) {
 			}
 			const m = findCalc(line, scope, settings);
 			if (!m) continue;
-			const span = document.createElement("span");
-			span.className = "calcul-inline-result";
-			span.textContent = (/\s$/.test(t.data) ? "" : " ") + m.result;
-			t.after(span);
+			t.after(createSpan({ cls: "calcul-inline-result", text: (/\s$/.test(t.data) ? "" : " ") + m.result }));
 		}
 
 		// Graphes sous les définitions de fonctions
@@ -84,12 +81,12 @@ export function makePostProcessor(getSettings: () => CalcSettings) {
 	};
 }
 
-/** Bloc ```graphe */
+/** Bloc ```graph / ```graphe */
 export function makeGraphBlockProcessor(getSettings: () => CalcSettings) {
 	return (source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext) => {
 		const settings = getSettings();
 		const info = ctx.getSectionInfo(el);
-		const scope = info ? scopeAtLine(info.text, info.lineStart + 1, settings) : new Map();
+		const scope: Scope = info ? scopeAtLine(info.text, info.lineStart + 1, settings) : new Map<string, unknown>();
 		renderGraph(el, parseGraphBlock(source, scope, settings), settings);
 	};
 }

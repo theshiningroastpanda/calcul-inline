@@ -28,7 +28,7 @@ export type Scope = Map<string, unknown>;
 // ---------------------------------------------------------------------------
 // Instance mathjs « bac à sable » : on désactive tout ce qui modifie l'état.
 const math: MathJsInstance = create(all, {});
-const evaluate = math.evaluate.bind(math);
+const evaluate = math.evaluate.bind(math) as (expr: string, scope?: Scope) => unknown;
 const FUNCS = new Set([
 	"sqrt", "cbrt", "nthRoot", "abs", "exp", "log", "log10", "log2", "ln",
 	"sin", "cos", "tan", "asin", "acos", "atan", "atan2", "sinh", "cosh", "tanh",
@@ -48,7 +48,7 @@ math.import(
 );
 
 // Verrouillage APRÈS nos ajouts.
-const blocked = () => { throw new Error("fonction désactivée"); };
+const blocked = () => { throw new Error("function disabled"); };
 math.import(
 	{
 		import: blocked, createUnit: blocked, evaluate: blocked, parse: blocked,
@@ -115,7 +115,7 @@ export function normalize(raw: string, settings: CalcSettings): string {
 		.replace(/\\pi|π/g, "pi")
 		.replace(/\\ln\b/g, "ln")
 		.replace(/\\log\b/g, "log10")
-		.replace(/\\(sin|cos|tan|exp|arcsin|arccos|arctan|sinh|cosh|tanh)\b/g, (_m, f) =>
+		.replace(/\\(sin|cos|tan|exp|arcsin|arccos|arctan|sinh|cosh|tanh)\b/g, (_m: string, f: string) =>
 			f.startsWith("arc") ? "a" + f.slice(3) : f)
 		.replace(/\\[,;:! ]|~/g, " ")
 		.replace(/\\%/g, "%")
@@ -140,16 +140,12 @@ function isUsefulValue(v: unknown): boolean {
 }
 
 export function formatValue(v: unknown, settings: CalcSettings): string {
-	let out = math.format(v as never, {
-		precision: settings.precision,
-		lowerExp: -6,
-		upperExp: 15,
-	} as never);
+	let out = math.format(v, { precision: settings.precision, lowerExp: -6, upperExp: 15 });
 	if (settings.decimalComma) out = out.replace(/(\d)\.(\d)/g, "$1,$2");
 	return out;
 }
 
-export function tryEvaluate(expr: string, scope: Scope): unknown | undefined {
+export function tryEvaluate(expr: string, scope: Scope): unknown {
 	if (!expr || /[=<>]/.test(expr)) return undefined;
 	try {
 		const v = evaluate(expr, new Map(scope));
@@ -228,6 +224,22 @@ export function findCalc(line: string, scope: Scope, settings: CalcSettings): Ca
 	return null;
 }
 
+/** Coupe sur les « = » isolés (pas ==, <=, >=, !=). Sans lookbehind : iOS < 16.4. */
+export function splitOnEquals(s: string): string[] {
+	const parts: string[] = [];
+	let start = 0;
+	for (let i = 0; i < s.length; i++) {
+		if (s[i] !== "=") continue;
+		const prev = i > 0 ? s[i - 1] : "";
+		if ("<>!=".includes(prev) && prev !== "") continue;
+		if (s[i + 1] === "=") continue;
+		parts.push(s.slice(start, i));
+		start = i + 1;
+	}
+	parts.push(s.slice(start));
+	return parts;
+}
+
 // ---------------------------------------------------------------------------
 // Variables : lignes « nom = expression » (sans « = » final)
 
@@ -242,7 +254,7 @@ export function readFunction(line: string, scope: Scope, settings: CalcSettings)
 	const [, name, params, body] = m;
 	if (FUNCS.has(name)) return null;
 	// « f(x) = x^2 = ... » : on garde seulement la définition
-	const rhs = body.split(/(?<![<>!=])=(?!=)/)[0].trim();
+	const rhs = splitOnEquals(body)[0].trim();
 	if (!rhs) return null;
 	try {
 		const local: Scope = new Map(scope);
@@ -262,7 +274,7 @@ export function readAssignment(line: string, scope: Scope, settings: CalcSetting
 	const name = m[1];
 	if (FUNCS.has(name) || CONSTS.has(name)) return null;
 	// « x = 5*2 = 10 » : on prend le dernier membre
-	const parts = m[2].split(/(?<![<>!=])=(?!=)/).map((p) => p.trim()).filter(Boolean);
+	const parts = splitOnEquals(m[2]).map((p) => p.trim()).filter(Boolean);
 	const rhs = parts[parts.length - 1];
 	if (!rhs) return null;
 	const v = tryEvaluate(normalize(rhs, settings), scope);
@@ -299,4 +311,3 @@ export function walkDocument(
 }
 
 export { math, evaluate as rawEvaluate };
-export function isBuiltinName(name: string): boolean { return FUNCS.has(name) || CONSTS.has(name); }

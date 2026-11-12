@@ -23,6 +23,7 @@ jobs:
       - run: npm ci
         env:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
+      - run: npm run lint
       - run: npm test
       - run: npm run build
       - name: Joindre main.js, manifest.json, styles.css à la release

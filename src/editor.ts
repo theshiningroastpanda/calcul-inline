@@ -3,6 +3,7 @@ import { EditorState, Prec, RangeSetBuilder, StateEffect, StateField, Extension 
 import { Decoration, DecorationSet, EditorView, ViewPlugin, ViewUpdate, WidgetType, keymap } from "@codemirror/view";
 import { CalcMatch, CalcSettings, findCalc, walkDocument } from "./core";
 import { GraphSpec, renderGraph, specForDefinition } from "./graph";
+import { t } from "./i18n";
 
 export const refreshEffect = StateEffect.define<null>();
 
@@ -52,10 +53,7 @@ class GhostWidget extends WidgetType {
 	constructor(readonly text: string, readonly m: Located) { super(); }
 	eq(other: GhostWidget) { return other.text === this.text && other.m.lineFrom === this.m.lineFrom; }
 	toDOM(view: EditorView): HTMLElement {
-		const span = document.createElement("span");
-		span.className = "calcul-inline-ghost";
-		span.textContent = this.text;
-		span.setAttribute("aria-label", "Tab ou clic pour insérer");
+		const span = createSpan({ cls: "calcul-inline-ghost", text: this.text, attr: { "aria-label": t("ghost.hint") } });
 		span.addEventListener("mousedown", (e) => {
 			e.preventDefault();
 			insertCalc(view, this.m);
@@ -141,8 +139,7 @@ class GraphWidget extends WidgetType {
 	constructor(readonly spec: GraphSpec, readonly key: string, readonly getSettings: () => CalcSettings) { super(); }
 	eq(other: GraphWidget) { return other.key === this.key; }
 	toDOM(): HTMLElement {
-		const div = document.createElement("div");
-		div.className = "calcul-graph-block";
+		const div = createDiv({ cls: "calcul-graph-block" });
 		renderGraph(div, this.spec, this.getSettings());
 		return div;
 	}

@@ -4,3 +4,4 @@ main.js
 test/*.js
 test/*.html
 *.zip
+test/.tmp/

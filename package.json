@@ -1,11 +1,13 @@
 {
   "name": "calcul-inline",
-  "version": "0.3.0",
-  "description": "Plugin Obsidian : calculs inline, unités, fonctions et graphes",
+  "version": "0.3.1",
+  "description": "Obsidian plugin: inline calculations, units, functions and graphs",
   "main": "main.js",
   "scripts": {
     "build": "tsc -p . && esbuild src/main.ts --bundle --format=cjs --target=es2020 --minify --external:obsidian --external:electron \"--external:@codemirror/*\" \"--external:@lezer/*\" --outfile=main.js",
-    "test": "esbuild test/core.test.ts --bundle --platform=node --outfile=test/core.test.js --log-level=error && node test/core.test.js"
+    "test": "esbuild test/core.test.ts --bundle --platform=node --outfile=test/core.test.js --log-level=error && node test/core.test.js",
+    "lint": "eslint .",
+    "test:e2e": "node test/e2e.mjs"
   },
   "license": "MIT",
   "devDependencies": {
@@ -15,9 +17,12 @@
     "@codemirror/view": "^6.43.13",
     "@types/node": "^26.6.5",
     "esbuild": "^0.28.2",
+    "eslint": "^9.39.5",
+    "eslint-plugin-obsidianmd": "^0.5.1",
     "obsidian": "^1.14.4",
     "playwright": "^1.64.1",
-    "typescript": "^7.0.2"
+    "typescript": "5.9",
+    "typescript-eslint": "^8.72.2"
   },
   "dependencies": {
     "mathjs": "^15.2.0"

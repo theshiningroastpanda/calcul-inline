@@ -1,5 +1,6 @@
-// Graphes de fonctions : analyse du bloc ```graphe, échantillonnage (pur) et rendu SVG.
+// Graphes de fonctions : analyse du bloc ```graph (ou ```graphe), échantillonnage (pur) et rendu SVG.
 import { CalcSettings, Scope, math, normalize, rawEvaluate, readFunction } from "./core";
+import { t } from "./i18n";
 
 type Fn = (x: unknown) => unknown;
 
@@ -17,7 +18,7 @@ export interface Sampled {
 	yunit: string | null;
 }
 
-interface UnitLike { type: "Unit"; toNumber(u: string): number; formatUnits(): string; simplify?: () => UnitLike }
+interface UnitLike { type: "Unit"; toNumber(u: string): number; formatUnits(): string; toString(): string; simplify?: () => UnitLike }
 const isUnit = (v: unknown): v is UnitLike =>
 	!!v && typeof v === "object" && (v as { type?: string }).type === "Unit";
 
@@ -73,7 +74,7 @@ export function parseGraphBlock(src: string, scopeIn: Scope, settings: CalcSetti
 				continue;
 			}
 			const r = parseRange(opt[2], scope, settings);
-			if (!r) { spec.errors.push(`Intervalle illisible : « ${line} » (ex. x: -5..5 ou x: 0..20 ms)`); continue; }
+			if (!r) { spec.errors.push(t("graph.badRange", line)); continue; }
 			if (key === "x") { spec.xmin = r.a; spec.xmax = r.b; spec.xunit = r.unit; }
 			else { spec.ymin = r.a; spec.ymax = r.b; }
 			continue;
@@ -96,9 +97,9 @@ export function parseGraphBlock(src: string, scopeIn: Scope, settings: CalcSetti
 		// Expression en x : « x^2 - 1 », « sin(x) »
 		const fn = /\bx\b/.test(line) ? anonymous(line, scope, settings) : null;
 		if (fn) spec.series.push({ label: line, fn });
-		else spec.errors.push(`Pas compris : « ${line} »`);
+		else spec.errors.push(t("graph.notUnderstood", line));
 	}
-	if (!spec.series.length && !spec.errors.length) spec.errors.push("Aucune fonction à tracer.");
+	if (!spec.series.length && !spec.errors.length) spec.errors.push(t("graph.nothing"));
 	return spec;
 }
 
@@ -142,7 +143,7 @@ export function sample(spec: GraphSpec, n = 400): Sampled[] {
 			try {
 				// toString choisit le bon préfixe (5 mA) ; on garde la partie unité
 				const simple = best.v.simplify ? best.v.simplify() : best.v;
-				yunit = String(simple).replace(/^[-+]?[\d.]+(e[-+]?\d+)?\s*/i, "") || simple.formatUnits();
+				yunit = simple.toString().replace(/^[-+]?[\d.]+(e[-+]?\d+)?\s*/i, "") || simple.formatUnits();
 				best.v.toNumber(yunit);
 			} catch { yunit = best.v.formatUnits(); }
 		}
@@ -184,28 +185,22 @@ export function niceTicks(a: number, b: number, target = 6): number[] {
 // --------------------------------------------------------------------------
 // Rendu
 
-const NS = "http://www.w3.org/2000/svg";
-function svg<K extends keyof SVGElementTagNameMap>(tag: K, attrs: Record<string, string | number>, parent?: Element) {
-	const e = document.createElementNS(NS, tag);
-	for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, String(v));
-	parent?.appendChild(e);
-	return e;
+// createDiv / createSpan / createSvg : aides DOM d'Obsidian (compatibles fenêtres détachées).
+function svg<K extends keyof SVGElementTagNameMap>(tag: K, attrs: Record<string, string | number>, parent: Node) {
+	return parent.createSvg(tag, { attr: attrs });
 }
 
 function fmt(v: number, settings: CalcSettings, digits = 4): string {
-	let s = math.format(v, { precision: digits, lowerExp: -4, upperExp: 6 } as never);
+	let s = math.format(v, { precision: digits, lowerExp: -4, upperExp: 6 });
 	if (settings.decimalComma) s = s.replace(".", ",");
 	return s;
 }
 
 export function renderGraph(container: HTMLElement, spec: GraphSpec, settings: CalcSettings): void {
-	const root = container.appendChild(document.createElement("div"));
-	root.className = "calcul-graph";
+	const root = container.createDiv({ cls: "calcul-graph" });
 
 	if (spec.errors.length) {
-		const err = root.appendChild(document.createElement("div"));
-		err.className = "calcul-graph-error";
-		err.textContent = spec.errors.join(" · ");
+		root.createDiv({ cls: "calcul-graph-error", text: spec.errors.join(" · ") });
 		if (!spec.series.length) return;
 	}
 
@@ -233,21 +228,17 @@ function renderPlot(root: HTMLElement, group: { d: Sampled; i: number }[], spec:
 	const yunit = data.find((d) => d.yunit)?.yunit ?? null;
 
 	if (data.length >= 2 || forceLegend) {
-		const lg = root.appendChild(document.createElement("div"));
-		lg.className = "calcul-graph-legend";
+		const lg = root.createDiv({ cls: "calcul-graph-legend" });
 		data.forEach((d, j) => {
-			const it = lg.appendChild(document.createElement("span"));
-			it.className = "calcul-graph-legend-item";
-			const sw = it.appendChild(document.createElement("span"));
-			sw.className = `calcul-graph-swatch ${color(j)}`;
-			it.appendChild(document.createTextNode(d.label));
+			const it = lg.createSpan({ cls: "calcul-graph-legend-item" });
+			it.createSpan({ cls: `calcul-graph-swatch ${color(j)}` });
+			it.createSpan({ text: d.label });
 		});
 	}
 
-	const wrap = root.appendChild(document.createElement("div"));
-	wrap.className = "calcul-graph-plot";
+	const wrap = root.createDiv({ cls: "calcul-graph-plot" });
 	const el = svg("svg", { viewBox: `0 0 ${W} ${H}`, role: "img",
-		"aria-label": `Graphe de ${data.map((d) => d.label).join(", ")}` }, wrap);
+		"aria-label": t("graph.aria", data.map((d) => d.label).join(", ")) }, wrap);
 
 	const clipId = `cg-clip-${Math.random().toString(36).slice(2)}`;
 	const defs = svg("defs", {}, el);
@@ -289,11 +280,10 @@ function renderPlot(root: HTMLElement, group: { d: Sampled; i: number }[], spec:
 	// Survol : réticule + points + infobulle
 	const cross = svg("line", { class: "cg-cross", y1: M.t, y2: M.t + ph, x1: 0, x2: 0, visibility: "hidden" }, el);
 	const dots = data.map((_, i) => svg("circle", { r: 4, class: `cg-dot ${color(i)}`, visibility: "hidden" }, el));
-	const tip = wrap.appendChild(document.createElement("div"));
-	tip.className = "calcul-graph-tip";
+	const tip = wrap.createDiv({ cls: "calcul-graph-tip" });
 	const hit = svg("rect", { x: M.l, y: M.t, width: pw, height: ph, fill: "transparent" }, el);
 
-	const hide = () => { cross.setAttribute("visibility", "hidden"); dots.forEach((d) => d.setAttribute("visibility", "hidden")); tip.style.display = "none"; };
+	const hide = () => { cross.setAttribute("visibility", "hidden"); dots.forEach((d) => d.setAttribute("visibility", "hidden")); tip.toggleClass("is-visible", false); };
 	hit.addEventListener("pointerleave", hide);
 	hit.addEventListener("pointermove", (ev: PointerEvent) => {
 		const r = el.getBoundingClientRect();
@@ -303,24 +293,21 @@ function renderPlot(root: HTMLElement, group: { d: Sampled; i: number }[], spec:
 		const x = data[0].pts[k][0];
 		cross.setAttribute("x1", String(X(x))); cross.setAttribute("x2", String(X(x)));
 		cross.setAttribute("visibility", "visible");
-		tip.replaceChildren();
-		const head = tip.appendChild(document.createElement("div"));
-		head.className = "calcul-graph-tip-x";
-		head.textContent = `x = ${fmt(x, settings, 5)}${spec.xunit ? " " + spec.xunit : ""}`;
+		tip.empty();
+		tip.createDiv({ cls: "calcul-graph-tip-x", text: `x = ${fmt(x, settings, 5)}${spec.xunit ? " " + spec.xunit : ""}` });
 		data.forEach((d, i) => {
 			const y = d.pts[k][1];
 			const dot = dots[i];
 			if (y === null || y < y0 || y > y1) dot.setAttribute("visibility", "hidden");
 			else { dot.setAttribute("cx", String(X(x))); dot.setAttribute("cy", String(Y(y))); dot.setAttribute("visibility", "visible"); }
-			const row = tip.appendChild(document.createElement("div"));
-			const sw = row.appendChild(document.createElement("span"));
-			sw.className = `calcul-graph-swatch ${color(i)}`;
+			const row = tip.createDiv();
+			row.createSpan({ cls: `calcul-graph-swatch ${color(i)}` });
 			const name = d.label.split("=")[0].trim();
-			row.appendChild(document.createTextNode(`${name} : ${y === null ? "—" : fmt(y, settings, 5) + (d.yunit ? " " + d.yunit : "")}`));
+			row.createSpan({ text: `${name} : ${y === null ? "—" : fmt(y, settings, 5) + (d.yunit ? " " + d.yunit : "")}` });
 		});
-		tip.style.display = "block";
 		const left = (X(x) / W) * r.width;
-		tip.style.left = `${left + 12}px`;
-		tip.style.transform = left > r.width * 0.6 ? "translateX(calc(-100% - 24px))" : "";
+		tip.setCssProps({ "--cg-tip-left": `${left + 12}px` });
+		tip.toggleClass("is-flipped", left > r.width * 0.6);
+		tip.toggleClass("is-visible", true);
 	});
 }

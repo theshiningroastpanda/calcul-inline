@@ -1,62 +1,68 @@
 # Calcul inline
 
-Plugin [Obsidian](https://obsidian.md) : écris un calcul qui finit par `=`, le résultat apparaît en gris. **Tab** (ou un clic) l'insère dans la note.
+An [Obsidian](https://obsidian.md) plugin: type a calculation ending with `=` and the result appears in grey right after it. Press **Tab** (or click) to insert it into the note.
 
 ```
-La puissance vaut 5 * 8 / 4 =            → 10
+The power is 5 * 8 / 4 =                 → 10
 5 V / 2 kohm =                           → 2.5 mA
 100 km/h to m/s =                        → 27.77777778 m / s
 $\frac{10}{4} \cdot 3 =$                 → 7.5
 ```
 
-## Fonctionnalités
+The interface is in English, and in French when Obsidian is set to French.
 
-- **Calculs** : `+ - * / ^ !`, parenthèses, `mod`, symboles `× ÷ · − ² ³ √ π`.
-- **Fonctions** : `sqrt`, `ln`, `log10`, `sin`/`cos`/`tan`…, `round`, `min`/`max`, `mean`, `combinations`, `gcd`… et les constantes `pi`, `e`, `i`.
-- **Unités** (via [mathjs](https://mathjs.org)) avec préfixes et conversion `to` : `1/(2*pi*1 kohm*100 nF) =` → `1.591549431 kHz`.
-- **Variables** : une ligne `R = 1 kohm` définit `R` pour les lignes en dessous.
-- **Fonctions perso** : `P(U, R) = U^2 / R` puis `P(5 V, 1 kohm) =` → `25 mW`.
-- **LaTeX** : `$…=$` avec `\frac`, `\sqrt`, `\cdot`, `\times`, `\pi`, `\sin`…
-- **Mode lecture & export PDF** : les résultats s'affichent aussi (sauf calculs en LaTeX).
-- Ignore les blocs de code, le `code inline`, le frontmatter, `==surlignage==`, `<=`, `>=`.
+## Features
 
-## Graphes
+- **Arithmetic**: `+ - * / ^ !`, parentheses, `mod`, and symbols such as `× ÷ · − ² ³ √ π`.
+- **Functions**: `sqrt`, `ln`, `log10`, `sin`/`cos`/`tan`…, `round`, `min`/`max`, `mean`, `combinations`, `gcd`… and the constants `pi`, `e`, `i`.
+- **Units** (powered by [mathjs](https://mathjs.org)) with prefixes and `to` conversion: `1/(2*pi*1 kohm*100 nF) =` → `1.591549431 kHz`.
+- **Variables**: a line `R = 1 kohm` defines `R` for the lines below it.
+- **Custom functions**: `P(U, R) = U^2 / R`, then `P(5 V, 1 kohm) =` → `25 mW`.
+- **LaTeX**: `$…=$` with `\frac`, `\sqrt`, `\cdot`, `\times`, `\pi`, `\sin`…
+- **Reading view and PDF export**: results are shown there too (except for LaTeX calculations).
+- Code blocks, `inline code`, frontmatter, `==highlights==`, `<=` and `>=` are ignored.
 
-Un graphe s'affiche automatiquement sous chaque `f(x) = …` (x de -10 à 10). Commande **« Afficher / masquer les graphes sous les fonctions »** pour basculer.
+A calculation must start with a digit, a parenthesis, a function, a constant or a variable you defined. This keeps ordinary words from being read as units.
 
-Pour plusieurs courbes ou un autre intervalle, un bloc `graphe` :
+## Graphs
+
+A graph is drawn automatically below each `f(x) = …` definition (x from -10 to 10). Use the command **Toggle graphs under functions** to show or hide them.
+
+For several curves or another range, use a `graph` code block:
 
 ````
-```graphe
+```graph
 u(t) = 5 V * sin(2*pi*f0*t)
 i(t) = u(t) / R
 x: 0..40 ms
 ```
 ````
 
-- Une fonction par ligne : définition, nom d'une fonction définie plus haut, ou expression en `x`.
-- Options : `x: a..b [unité]`, `y: a..b`, `hauteur: 300`.
-- Survol : réticule et valeurs. Courbes d'unités différentes → un graphe par unité.
+- One function per line: a definition, the name of a function defined above, or an expression in `x`.
+- Options: `x: a..b [unit]`, `y: a..b`, `height: 300`.
+- Hover the graph for a crosshair with values. Curves with different units get one graph per unit.
 
-## Réglages
+## Settings
 
-Chiffres significatifs · résultats en mode lecture · graphe sous les fonctions · virgule décimale (`2,5`).
+Significant digits · results in reading view · graph under functions · decimal comma (`2,5`).
 
 ## Installation
 
-- **BRAT** : installe [BRAT](https://github.com/TfTHacker/obsidian42-brat), puis « Add beta plugin » → `theshiningroastpanda/calcul-inline`.
-- **Manuel** : télécharge `main.js`, `manifest.json` et `styles.css` depuis la [dernière release](../../releases/latest) dans `<vault>/.obsidian/plugins/calcul-inline/`, puis active le plugin.
+- **BRAT**: install [BRAT](https://github.com/TfTHacker/obsidian42-brat), then "Add beta plugin" → `theshiningroastpanda/calcul-inline`.
+- **Manual**: download `main.js`, `manifest.json` and `styles.css` from the [latest release](../../releases/latest) into `<vault>/.obsidian/plugins/calcul-inline/`, then enable the plugin.
 
-## Développement
+## Development
 
 ```bash
 npm install
-npm test         # tests du moteur de calcul
-npm run build    # produit main.js
+npm run lint       # Obsidian's ESLint rules
+npm test           # calculation engine tests
+npm run test:e2e   # browser tests (needs Playwright's Chromium)
+npm run build      # produces main.js
 ```
 
-Publier une version : mettre à jour `version` dans `manifest.json` et `package.json`, ajouter la ligne dans `versions.json`, puis `git tag 0.3.1 && git push --tags`. Le workflow crée la release.
+To publish a version: update `version` in `manifest.json` and `package.json`, add the line to `versions.json`, then create a GitHub release whose tag is that version number. The workflow builds the plugin and attaches the files.
 
-## Licence
+## License
 
 MIT
