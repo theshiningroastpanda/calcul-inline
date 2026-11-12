@@ -1,4 +1,4 @@
-# Calcul inline
+# Inline Calcul
 
 An [Obsidian](https://obsidian.md) plugin: type a calculation ending with `=` and the result appears in grey right after it. Press **Tab** (or click) to insert it into the note.
 
