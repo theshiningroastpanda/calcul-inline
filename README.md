@@ -61,7 +61,7 @@ npm run test:e2e   # browser tests (needs Playwright's Chromium)
 npm run build      # produces main.js
 ```
 
-To publish a version: update `version` in `manifest.json` and `package.json`, add the line to `versions.json`, then create a GitHub release whose tag is that version number. The workflow builds the plugin and attaches the files.
+To publish a version: update `version` in `manifest.json` and `package.json`, add the line to `versions.json` and a section to `CHANGELOG.md`, then create a GitHub release whose tag is that version number. The workflow builds the plugin, attests the files, attaches them and fills in the release notes.
 
 ## License
 

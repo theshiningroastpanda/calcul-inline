@@ -1,7 +1,7 @@
 {
   "id": "calcul-inline",
   "name": "Inline Calcul",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "minAppVersion": "1.8.7",
   "description": "Type a calculation ending with = and see the result inline; press Tab to insert it. Supports units, variables, custom functions, LaTeX and function graphs.",
   "author": "theshiningroastpanda",
