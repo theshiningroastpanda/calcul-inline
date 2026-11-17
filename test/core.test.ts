@@ -28,6 +28,24 @@ const cases: [string, string | null][] = [
   ["3 m * 4 m =", "12 m^2"],
   ["100 km/h to m/s =", "27.77777778 m / s"],
   ["5 = ", null],
+  // Préfixes Markdown : la puce n'est pas un signe moins
+  ["- 48000 * 2 =", "96000"],
+  ["\t- 48000 * 2 =", "96000"],
+  ["    - 48000 * 2 =", "96000"],
+  ["* 48000 * 2 =", "96000"],
+  ["+ 48000 * 2 =", "96000"],
+  ["1. 48000 * 2 =", "96000"],
+  ["12) 3 + 4 =", "7"],
+  ["- [ ] 6 * 7 =", "42"],
+  ["- [x] 6 * 7 =", "42"],
+  ["> 6 * 7 =", "42"],
+  ["> - 6 * 7 =", "42"],
+  ["## 6 * 7 =", "42"],
+  ["- $5 \\cdot 8 =$", "40"],
+  ["-48000 * 2 =", "-96000"],
+  ["- -48000 * 2 =", "-96000"],
+  ["- 5 =", null],
+  ["1.5 * 2 =", "3"],
 ];
 let fail = 0;
 for (const [line, exp] of cases) {
@@ -44,6 +62,10 @@ walkDocument(doc, S, (n, t, sc) => { const r = findCalc(t, sc, S); if (r) consol
 console.log("virgule:", findCalc("2,5 * 4 =", empty, {...S, decimalComma:true})?.result, findCalc("10/4 =", empty, {...S, decimalComma:true})?.result);
 // fonctions perso
 const fdoc = ["f(x) = x^2 + 1","f(3) =","P(U, R) = U^2 / R","P(5 V, 1 kohm) =","f0 = 50 Hz","w(t) = sin(2*pi*f0*t)","w(5 ms) =","$g(x) = \\frac{x}{2}$","$g(10) =$","sqrt(x) = 3","sqrt(16) =","h(x) = x + inconnu","h(1) ="];
+// variables dans des listes
+const ldoc = ["- a = 3", "1. b = 4", "- [ ] c = 5", "> d = 6", "\t- g(x) = 2*x", "- a*b*c*d =", "- g(10) ="];
+const lexp = [null, null, null, null, null, "360", "20"];
+walkDocument(ldoc, S, (n, t, sc) => { const r = findCalc(t, sc, S); const got = r ? r.result : null; const ok = got === lexp[n-1]; if (!ok) fail++; console.log(ok ? "ok  " : "FAIL", "liste L"+n, JSON.stringify(t), "->", got); });
 walkDocument(fdoc, S, (n, t, sc) => { const r = findCalc(t, sc, S); console.log("fn L"+n, JSON.stringify(t), "->", r ? r.result : null); });
 
 process.exit(fail ? 1 : 0);
