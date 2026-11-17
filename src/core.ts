@@ -185,6 +185,11 @@ function countUnescaped(s: string, ch: string, end: number): { count: number; la
 	return { count, last };
 }
 
+// Préfixe Markdown en début de ligne : indentation, citations « > », titre « # »,
+// puce « - * + » ou numéro « 1. 1) » suivis d'un espace, case « [ ] ».
+// « - 5 » est une puce (comme pour Obsidian) ; « -5 » reste un nombre négatif.
+const MD_PREFIX = /^(?:[ \t]*>)*[ \t]*(?:#{1,6}[ \t]+|(?:[-*+]|\d{1,9}[.)])[ \t]+(?:\[.\][ \t]+)?)?/;
+
 export function findCalc(line: string, scope: Scope, settings: CalcSettings): CalcMatch | null {
 	// Le « = » déclencheur est suivi seulement d'espaces, puis fin de ligne ou « $ ».
 	const m = /=([ \t]*)(\$\$?)?[ \t]*$/.exec(line);
@@ -201,8 +206,8 @@ export function findCalc(line: string, scope: Scope, settings: CalcSettings): Ca
 	if (m[2] && !inMath) return null; // « = $ » hors maths : on ignore
 
 	// Segment : depuis le dernier « = » (ou « $ ») avant le déclencheur
-	let start = 0;
-	if (inMath) start = dollars.last + 1;
+	let start = MD_PREFIX.exec(line)?.[0].length ?? 0;
+	if (inMath) start = Math.max(start, dollars.last + 1);
 	const lastEq = line.lastIndexOf("=", eq - 1);
 	if (lastEq >= start) start = lastEq + 1;
 	const segment = line.slice(start, eq);
@@ -243,10 +248,11 @@ export function splitOnEquals(s: string): string[] {
 // ---------------------------------------------------------------------------
 // Variables : lignes « nom = expression » (sans « = » final)
 
-const ASSIGN = /^\s*(?:[-*+]\s+)?\$?\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*([^=].*?)\s*\$?\s*$/;
+const P = MD_PREFIX.source; // commence par « ^ »
+const ASSIGN = new RegExp(P + /\$?\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*([^=].*?)\s*\$?\s*$/.source);
 
 // Fonctions perso : « f(x) = x^2 + 1 », « P(U, R) = U^2 / R »
-const FN_ASSIGN = /^\s*(?:[-*+]\s+)?\$?\s*([A-Za-z_][A-Za-z0-9_]*)\s*\(\s*([A-Za-z_][A-Za-z0-9_]*(?:\s*,\s*[A-Za-z_][A-Za-z0-9_]*)*)\s*\)\s*=\s*([^=].*?)\s*\$?\s*$/;
+const FN_ASSIGN = new RegExp(P + /\$?\s*([A-Za-z_][A-Za-z0-9_]*)\s*\(\s*([A-Za-z_][A-Za-z0-9_]*(?:\s*,\s*[A-Za-z_][A-Za-z0-9_]*)*)\s*\)\s*=\s*([^=].*?)\s*\$?\s*$/.source);
 
 export function readFunction(line: string, scope: Scope, settings: CalcSettings): [string, unknown] | null {
 	const m = FN_ASSIGN.exec(line);
